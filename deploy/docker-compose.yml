@@ -1,0 +1,75 @@
+version: '3.5'
+
+services:
+
+  database:
+    container_name: app-postgres
+    network_mode: host
+    shm_size: 2g
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    restart: always
+    volumes:
+      - volume-database:/var/lib/postgresql/data
+
+  redis:
+    container_name: app-redis
+    network_mode: host
+    image: redis
+    restart: always
+    volumes:
+      - volume-redis:/data
+
+#  database-migration:
+#    network_mode: host
+#    build: ../
+#    command:
+#      - bash -c "cd /code/ && pipenv run alembic upgrade head"
+
+  app-server:
+    container_name: app-server
+    network_mode: host
+    restart: always
+    depends_on:
+      - redis
+      - database
+    build: ../
+    command: >
+      sh -c "cd /code/ && pipenv run uvicorn main:app --host 0.0.0.0 --port 8080"
+
+  nginx:
+    container_name: app-nginx
+    image: nginx:latest
+    restart: always
+    network_mode: host
+    depends_on:
+      - redis
+      - database
+      - app-server
+      - app-smtp
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /home/ubuntu/ssl:/ssl/
+
+  app-smtp:
+    container_name: app-smtp
+    network_mode: host
+    restart: always
+    depends_on:
+      - redis
+      - database
+    build: ../
+    command: >
+      sh -c "cd /code/ && pipenv run python ./schedulers.py"
+      
+
+volumes:
+  volume-database:
+    name: volume-database
+  volume-redis:
+    name: volume-redis
+  volumes-nginx:
+    name: volume-nginx
