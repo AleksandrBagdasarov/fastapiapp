@@ -3,7 +3,6 @@ from fastapi import status
 
 
 class TestProfile(UserSetup):
-
     async def test_get_profile(self, new_user):
         await new_user()
         response = await self.get_profile()

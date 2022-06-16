@@ -17,7 +17,7 @@ class AdminRoles(enum.Enum):
 
 
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     __table_args__ = (
         Index("idx_user_id", "id"),
@@ -34,7 +34,7 @@ class User(Base):
 
 
 class Notifications(Base):
-    __tablename__ = 'notifications'
+    __tablename__ = "notifications"
 
     __table_args__ = (
         Index("idx_notifications_id", "id"),
@@ -49,7 +49,7 @@ class Notifications(Base):
 
 
 class AdminUsers(Base):
-    __tablename__ = 'admin_users'
+    __tablename__ = "admin_users"
 
     id = Column(UUID, primary_key=True, default=uuid4)
     role = Column(Enum(AdminRoles))
@@ -65,6 +65,8 @@ async def create_models():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import asyncio
+
     asyncio.run(create_models())

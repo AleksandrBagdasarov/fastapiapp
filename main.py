@@ -1,9 +1,13 @@
-
 import uvicorn
 
 from fastapi import FastAPI, Request, Depends, UploadFile
 from modules.user.auth.processor import signup, signin, logout
-from modules.notifications.processor import get_notifications, create_notification, update_notification, delete_notifications
+from modules.notifications.processor import (
+    get_notifications,
+    create_notification,
+    update_notification,
+    delete_notifications,
+)
 from modules.user.auth.utils import JWTBearer
 from modules.user.pofile import get_profile, edit_profile, save_avatar
 

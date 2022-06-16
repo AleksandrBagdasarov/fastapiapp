@@ -32,5 +32,3 @@ def loop(event_loop):  # pylint: disable=redefined-outer-name
 def client():
     client = TestClient(app)
     return client
-
-

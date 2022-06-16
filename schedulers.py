@@ -21,31 +21,24 @@ async def planning_notifications():
         for notification_id, notification in notifications.items():
             sched.add_job(
                 send_email,
-                'date',
+                "date",
                 run_date=notification["notify_time"],
-                args=[notification["email"], notifications["title"], notification["body"]]
+                args=[notification["email"], notifications["title"], notification["body"]],
             )
 
 
 async def collect_notifications():
-    async_session = sessionmaker(
-        engine, expire_on_commit=True, class_=AsyncSession
-    )
+    async_session = sessionmaker(engine, expire_on_commit=True, class_=AsyncSession)
     async with async_session() as session:
-        select_stmt = (
-            select(Notifications)
-            .where(
-                between(
-                    Notifications.notify_time,
-                    datetime.datetime.utcnow(),
-                    datetime.datetime.utcnow() + datetime.timedelta(seconds=120),
-                )
+        select_stmt = select(Notifications).where(
+            between(
+                Notifications.notify_time,
+                datetime.datetime.utcnow(),
+                datetime.datetime.utcnow() + datetime.timedelta(seconds=120),
             )
         )
         result = await session.execute(select_stmt)
-        notifications = [
-            notification["Notifications"] for notification in result.all()
-        ]
+        notifications = [notification["Notifications"] for notification in result.all()]
     if notifications:
         current_notifications = await redis.get("notifications")
         for notification in notifications:
@@ -62,7 +55,7 @@ async def collect_notifications():
         await redis.set("notifications", current_notifications)
 
 
-sched.add_job(planning_notifications, 'interval', minutes=2)
+sched.add_job(planning_notifications, "interval", minutes=2)
 
 while True:
     sched.start()

@@ -3,14 +3,8 @@ from fastapi import status
 
 
 class TestAuth(UserSetup):
-
     async def test_signup(self):
-        response = await self.signup(
-            email="example@mai.com",
-            password="Example#1",
-            firstname="John",
-            lastname="Doe"
-        )
+        response = await self.signup(email="example@mai.com", password="Example#1", firstname="John", lastname="Doe")
         assert response.status_code == status.HTTP_200_OK
 
     async def test_signin(self, new_user):
@@ -21,10 +15,7 @@ class TestAuth(UserSetup):
             password=pwd,
         )
 
-        response = await self.signin(
-            email=email,
-            password=pwd
-        )
+        response = await self.signin(email=email, password=pwd)
         assert response.status_code == status.HTTP_200_OK
 
     async def test_logout(self, new_user):

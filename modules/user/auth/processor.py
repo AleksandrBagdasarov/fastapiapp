@@ -25,27 +25,17 @@ async def signup(request: Request):
     if email and password:
         pattern = r"(^[a-zA-Z0-9_+.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
         if not re.search(pattern, email):
-            credential_errors.append(
-                "Email is invalid."
-            )
+            credential_errors.append("Email is invalid.")
         if len(password) < 8:
-            credential_errors.append(
-                "Password must be more than 8 characters."
-            )
+            credential_errors.append("Password must be more than 8 characters.")
 
-        if re.search('[0-9]', password) is None:
-            credential_errors.append(
-                "Make sure your password has a number in it."
-            )
+        if re.search("[0-9]", password) is None:
+            credential_errors.append("Make sure your password has a number in it.")
 
-        if re.search('[A-Z]', password) is None:
-            credential_errors.append(
-                "Make sure your password has a capital letter in it."
-            )
+        if re.search("[A-Z]", password) is None:
+            credential_errors.append("Make sure your password has a capital letter in it.")
     else:
-        credential_errors.append(
-            "Email or password not specified."
-        )
+        credential_errors.append("Email or password not specified.")
 
     # todo firstname validator
     # todo lastname validator
@@ -57,9 +47,7 @@ async def signup(request: Request):
         signup_status = status.HTTP_400_BAD_REQUEST
     else:
         hashed_pwd = await get_hashed_pwd(password)
-        async_session = sessionmaker(
-            engine, expire_on_commit=True, class_=AsyncSession
-        )
+        async_session = sessionmaker(engine, expire_on_commit=True, class_=AsyncSession)
         async with async_session() as session:
             user = User(
                 id=str(uuid.uuid4()),
@@ -67,17 +55,12 @@ async def signup(request: Request):
                 email=email,
                 firstname=firstname,
                 lastname=lastname,
-                blocked=False
+                blocked=False,
             )
             session.add_all([user])
             await session.commit()
 
-    return responses.JSONResponse(
-        {
-            "message": message
-        },
-        status_code=signup_status
-    )
+    return responses.JSONResponse({"message": message}, status_code=signup_status)
 
 
 async def signin(request: Request):
@@ -87,61 +70,23 @@ async def signin(request: Request):
 
     hashed_pwd = await get_hashed_pwd(password)
 
-    async_session = sessionmaker(
-        engine, expire_on_commit=False, class_=AsyncSession
-    )
+    async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     async with async_session() as session:
-        result = await session.execute(
-            select(User)
-            .where(
-                User.email == email
-            )
-        )
+        result = await session.execute(select(User).where(User.email == email))
         user = result.first()["User"]
     if not user:
-        return responses.JSONResponse(
-            {
-                "message": "User not found."
-            },
-            status_code=status.HTTP_404_NOT_FOUND
-        )
+        return responses.JSONResponse({"message": "User not found."}, status_code=status.HTTP_404_NOT_FOUND)
     elif user.blocked:
-        return responses.JSONResponse(
-            {
-                "message": "User was blocked."
-            },
-            status_code=status.HTTP_403_FORBIDDEN
-        )
+        return responses.JSONResponse({"message": "User was blocked."}, status_code=status.HTTP_403_FORBIDDEN)
     elif user.password != hashed_pwd:
-        return responses.JSONResponse(
-            {
-                "message": "Wrong password."
-            },
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return responses.JSONResponse({"message": "Wrong password."}, status_code=status.HTTP_400_BAD_REQUEST)
     else:
         token = await sign_jwt(user_id=user.id)
-        await redis.set(
-            user.id, {
-                "token": token
-            },
-            ttl=600
-        )
+        await redis.set(user.id, {"token": token}, ttl=600)
 
-        return responses.JSONResponse(
-            {
-                "message": "Success!",
-                "token": token
-            },
-            status_code=status.HTTP_200_OK
-        )
+        return responses.JSONResponse({"message": "Success!", "token": token}, status_code=status.HTTP_200_OK)
 
 
 async def logout(request: Request):
     await remove_token(request)
-    return responses.JSONResponse(
-        {
-            "message": "User logout success."
-        },
-        status_code=status.HTTP_200_OK
-    )
+    return responses.JSONResponse({"message": "User logout success."}, status_code=status.HTTP_200_OK)

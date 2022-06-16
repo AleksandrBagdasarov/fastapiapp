@@ -13,7 +13,9 @@ class MyRedis:
 
     async def _get_pool(self):
         self.pool = aioredis.ConnectionPool.from_url(
-            REDIS_URL, decode_responses=True, encoding=ENCODING,
+            REDIS_URL,
+            decode_responses=True,
+            encoding=ENCODING,
         )
         self.conn = aioredis.Redis(connection_pool=self.pool)
 

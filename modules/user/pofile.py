@@ -13,27 +13,15 @@ async def get_profile(request: Request):
     token_data = decode_jwt(token_from_request(request))
     user_id = token_data["user_id"]
 
-    async_session = sessionmaker(
-        engine, expire_on_commit=True, class_=AsyncSession
-    )
+    async_session = sessionmaker(engine, expire_on_commit=True, class_=AsyncSession)
 
     async with async_session() as session:
-        result = await session.execute(
-            select(User)
-            .where(
-                User.id == user_id
-            )
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         user = result.first()["User"]
 
     return responses.JSONResponse(
-        {
-            "firstname": user.firstname,
-            "lastname": user.lastname,
-            "email": user.email,
-            "avatar": user.avatar
-        },
-        status_code=status.HTTP_200_OK
+        {"firstname": user.firstname, "lastname": user.lastname, "email": user.email, "avatar": user.avatar},
+        status_code=status.HTTP_200_OK,
     )
 
 
@@ -43,35 +31,17 @@ async def edit_profile(request: Request):
     user_id = token_data["user_id"]
     payload = await request.json()
 
-    accepted_field_for_update = (
-        "firstname",
-        "lastname",
-        "password",
-        "email"
-    )
-    accepted_update_values = {
-        k: v for k, v in payload.items() if k in accepted_field_for_update
-    }
+    accepted_field_for_update = ("firstname", "lastname", "password", "email")
+    accepted_update_values = {k: v for k, v in payload.items() if k in accepted_field_for_update}
 
-    async_session = sessionmaker(
-        engine, expire_on_commit=True, class_=AsyncSession
-    )
+    async_session = sessionmaker(engine, expire_on_commit=True, class_=AsyncSession)
 
     async with async_session() as session:
-        stmt = (
-            update(User)
-            .values(accepted_update_values)
-            .where(
-                User.id == user_id
-            )
-        )
+        stmt = update(User).values(accepted_update_values).where(User.id == user_id)
         await session.execute(stmt)
         await session.commit()
 
-    return responses.JSONResponse(
-        {"message": "User was updated."},
-        status_code=status.HTTP_200_OK
-    )
+    return responses.JSONResponse({"message": "User was updated."}, status_code=status.HTTP_200_OK)
 
 
 async def save_avatar(request: Request):
@@ -86,7 +56,4 @@ async def save_avatar(request: Request):
     with open(f"{full_path}/{user_id}", "wb") as f:
         f.write(file)
 
-    return responses.JSONResponse(
-        {"message": "Avatar was uploaded."},
-        status_code=status.HTTP_200_OK
-    )
+    return responses.JSONResponse({"message": "Avatar was uploaded."}, status_code=status.HTTP_200_OK)
