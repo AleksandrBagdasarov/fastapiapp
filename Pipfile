@@ -14,6 +14,7 @@ pytest-asyncio = "*"
 bcrypt = "*"
 pyjwt = "*"
 apscheduler = "*"
+sendgrid = "*"
 
 [dev-packages]
 

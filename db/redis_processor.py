@@ -29,7 +29,7 @@ class MyRedis:
     async def get(self, key: str) -> dict:
         await self._get_pool()
         value = await self.conn.get(key)
-        data = json.loads(value)
+        data = {} if not value else json.loads(value)
         await self.pool.disconnect()
         return data
 
